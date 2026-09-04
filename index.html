@@ -15,26 +15,26 @@
         extend: {
           colors: {
             brand: {
-              navy: '#0b1329',
-              blue: '#1e293b',
-              accent: '#8b0000', // Burdeo sobrio legal
-              gold: '#c5a880',
-              slate: '#f8fafc'
+              burdeo: '#751318',
+              burdeoHover: '#5e0f13',
+              navySlate: '#21324d',
+              navyDark: '#172338',
+              accentBlue: '#2c4b75'
             }
           },
           fontFamily: {
-            serif: ['Playfair Display', 'Georgia', 'serif'],
-            sans: ['Inter', 'system-ui', 'sans-serif']
+            sans: ['Montserrat', 'system-ui', '-apple-system', 'sans-serif'],
+            display: ['Montserrat', 'sans-serif']
           }
         }
       }
     }
   </script>
 
-  <!-- Google Fonts -->
+  <!-- Google Fonts: Montserrat -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
 
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -42,173 +42,192 @@
   <!-- Estilos propios -->
   <link rel="stylesheet" href="assets/css/styles.css" />
 </head>
-<body class="bg-brand-slate text-slate-800 font-sans antialiased">
+<body class="bg-slate-50 text-slate-800 font-sans antialiased">
 
-  <!-- Barra Superior de Aviso y Conversión -->
-  <div class="bg-brand-accent text-white text-xs sm:text-sm py-2 px-4 text-center flex items-center justify-center gap-2">
-    <span>¿Necesita evaluar la viabilidad de su caso judicial?</span>
-    <a href="#contacto" class="underline font-semibold hover:text-brand-gold transition-colors">Agendemos una entrevista técnica hoy mismo</a>
+  <!-- 1. Cinta Superior Burdeo -->
+  <div class="bg-brand-burdeo text-white py-2.5 px-4 shadow-sm">
+    <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+      <p class="text-xs sm:text-sm font-medium">
+        ¿Necesita evaluar la viabilidad de su caso judicial? Agendemos una entrevista técnica hoy mismo.
+      </p>
+      <a href="#contacto" class="bg-white/10 hover:bg-white/25 text-white text-xs font-bold px-4 py-1.5 rounded border border-white/40 tracking-wider uppercase whitespace-nowrap transition-all">
+        ¡Agendar ahora!
+      </a>
+    </div>
   </div>
 
-  <!-- Navegación -->
-  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
-      <a href="#" class="flex flex-col leading-tight">
-        <span class="font-serif text-2xl font-bold tracking-wider text-brand-navy">SINCRO</span>
-        <span class="text-[10px] tracking-widest text-slate-500 uppercase font-semibold">Soluciones Legales</span>
+  <!-- 2. Barra de Navegación -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
+      <a href="#" class="flex items-center space-x-2">
+        <span class="font-display font-extrabold tracking-widest text-lg sm:text-xl text-slate-900">
+          SINCRO<span class="text-brand-burdeo font-normal">|</span>ABOGADOS
+        </span>
       </a>
 
-      <!-- Menú Escritorio -->
-      <nav class="hidden md:flex items-center space-x-8 text-sm font-medium text-slate-600">
-        <a href="#servicios" class="hover:text-brand-accent transition-colors">Áreas de Práctica</a>
-        <a href="#trayectoria" class="hover:text-brand-accent transition-colors">Trayectoria</a>
-        <a href="#contacto" class="bg-brand-navy hover:bg-brand-blue text-white px-5 py-2.5 rounded-md font-medium transition-all shadow-sm">
-          Agendar Consulta
+      <!-- Menú desktop -->
+      <nav class="hidden md:flex items-center space-x-6 text-sm font-medium text-slate-700">
+        <a href="#servicios" class="hover:text-brand-burdeo transition-colors">Áreas de Práctica</a>
+        <a href="#trayectoria" class="hover:text-brand-burdeo transition-colors">Trayectoria</a>
+        <a href="#contacto" class="bg-brand-burdeo hover:bg-brand-burdeoHover text-white px-4 py-2 rounded text-xs font-semibold tracking-wider uppercase transition-all">
+          Agendar
         </a>
       </nav>
 
-      <!-- Botón Menú Móvil -->
-      <button id="mobile-menu-btn" class="md:hidden text-slate-700 focus:outline-none" aria-label="Abrir menú">
+      <!-- Botón móvil -->
+      <button id="mobile-menu-btn" class="md:hidden text-slate-700 p-2 focus:outline-none" aria-label="Abrir menú">
         <i data-lucide="menu" class="w-6 h-6"></i>
       </button>
     </div>
 
-    <!-- Menú Desplegable Móvil -->
+    <!-- Menú móvil -->
     <div id="mobile-menu" class="hidden md:hidden bg-white border-b border-slate-200 px-6 py-4 space-y-3">
-      <a href="#servicios" class="block text-slate-600 py-1 mobile-link">Áreas de Práctica</a>
-      <a href="#trayectoria" class="block text-slate-600 py-1 mobile-link">Trayectoria</a>
-      <a href="#contacto" class="block text-brand-accent font-semibold py-1 mobile-link">Agendar Consulta</a>
+      <a href="#servicios" class="block text-slate-700 py-1 mobile-link">Áreas de Práctica</a>
+      <a href="#trayectoria" class="block text-slate-700 py-1 mobile-link">Trayectoria</a>
+      <a href="#contacto" class="block text-brand-burdeo font-bold py-1 mobile-link">Agendar</a>
     </div>
   </header>
 
-  <!-- Hero Section -->
-  <section class="relative bg-brand-navy text-white py-24 sm:py-32 overflow-hidden">
-    <div class="absolute inset-0 opacity-15 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:16px_16px]"></div>
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 relative z-10 text-center">
-      <span class="inline-block uppercase tracking-widest text-xs font-semibold text-brand-gold mb-4 border border-brand-gold/30 px-3 py-1 rounded-full">
-        Estudio Jurídico Especializado
-      </span>
-      <h1 class="text-4xl sm:text-6xl font-serif font-bold tracking-tight mb-6 max-w-3xl mx-auto leading-tight">
-        SINCRO | SOLUCIONES LEGALES
+  <!-- 3. Hero Section Adaptable (Desktop / Mobile) -->
+  <section class="relative min-h-[580px] sm:min-h-[640px] lg:min-h-[720px] flex items-center justify-center overflow-hidden bg-slate-900">
+    <picture class="absolute inset-0 w-full h-full">
+      <!-- Versión para PC (formato horizontal 16:9) -->
+      <source media="(min-width: 768px)" srcset="assets/img/Hero-Desktop.jpg">
+      <!-- Versión para Celular (foto vertical) -->
+      <img 
+        src="assets/img/Hero-Mobile.jpg" 
+        alt="Álvaro Quiero - Sincro Soluciones Legales" 
+        class="w-full h-full object-cover object-center"
+        onerror="this.src='assets/img/Hero-Abogado.jpg'"
+      />
+    </picture>
+    
+    <!-- Overlay oscuro para contraste del texto -->
+    <div class="absolute inset-0 bg-slate-950/55"></div>
+
+    <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center text-white py-16 sm:py-20">
+      <h1 class="font-display font-light text-3xl sm:text-5xl md:text-6xl tracking-wider leading-tight sm:leading-snug mb-4">
+        SINCRO<span class="font-normal text-slate-300">|</span>SOLUCIONES<br class="hidden sm:inline" /> LEGALES
       </h1>
-      <p class="text-lg sm:text-xl text-slate-300 max-w-2xl mx-auto font-light leading-relaxed mb-10">
-        9 años de trayectoria simplificando procesos y maximizando resultados con rigor técnico y transparencia.
+      
+      <p class="text-sm sm:text-base md:text-lg text-slate-200 max-w-2xl mx-auto font-normal italic mb-8">
+        "9 Años de trayectoria simplificando procesos y maximizando resultados."
       </p>
-      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-        <a href="#contacto" class="w-full sm:w-auto bg-brand-accent hover:bg-red-900 text-white font-medium px-8 py-3.5 rounded-md shadow-md transition-all">
-          Agendar Evaluación Técnica
-        </a>
-        <a href="#servicios" class="w-full sm:w-auto border border-slate-400 hover:border-white text-slate-200 hover:text-white font-medium px-8 py-3.5 rounded-md transition-all">
-          Conocer Áreas
+
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+        <a href="#contacto" class="w-full sm:w-auto bg-brand-burdeo hover:bg-brand-burdeoHover text-white text-xs sm:text-sm font-semibold tracking-wider uppercase px-8 py-3.5 rounded shadow-lg transition-all">
+          Agendar Consulta Técnica
         </a>
       </div>
     </div>
   </section>
 
-  <!-- Servicios / Áreas de Práctica -->
-  <section id="servicios" class="py-24 max-w-6xl mx-auto px-4 sm:px-6">
-    <div class="text-center max-w-2xl mx-auto mb-16">
-      <h2 class="text-3xl font-serif font-bold text-brand-navy mb-4">Áreas de Práctica</h2>
-      <p class="text-slate-600">Representación legal estratégica orientada a soluciones concretas y efectivas.</p>
+  <!-- 4. Áreas de Práctica (Cards Encapsuladas) -->
+  <section id="servicios" class="py-20 sm:py-24 max-w-6xl mx-auto px-4 sm:px-6">
+    <div class="text-center max-w-2xl mx-auto mb-14">
+      <h2 class="font-display font-semibold text-2xl sm:text-3xl text-slate-900 mb-2">
+        Áreas de Práctica
+      </h2>
+      <p class="text-xs sm:text-sm text-slate-500">
+        Representación técnica y oportuna adaptada a cada requerimiento.
+      </p>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
       
       <!-- Card 1: Familia -->
-      <div class="bg-white rounded-lg p-8 border border-slate-200 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
-        <div>
-          <div class="w-12 h-12 rounded-md bg-slate-100 flex items-center justify-center text-brand-navy mb-6">
-            <i data-lucide="users" class="w-6 h-6"></i>
-          </div>
-          <h3 class="text-xl font-serif font-semibold text-brand-navy mb-3">Pensión de Alimentos y Familia</h3>
-          <p class="text-slate-600 text-sm leading-relaxed mb-6">
-            Entendemos que la judicialización de temas de familia conlleva una carga emocional desgastante. Nuestro enfoque es pragmático y honesto: acuerdos justos donde sea posible y firmeza en Tribunales cuando sea necesario, priorizando siempre una resolución técnica efectiva.
-          </p>
+      <div class="bg-white rounded-xl border border-slate-200 p-8 shadow-sm hover:shadow-md transition-all flex flex-col items-center text-center">
+        <div class="w-32 h-32 mb-6 flex items-center justify-center">
+          <img 
+            src="assets/img/familia.png" 
+            alt="Pensión de Alimentos y Derecho de Familia" 
+            class="max-w-full max-h-full object-contain"
+          />
         </div>
-        <div class="pt-4 border-t border-slate-100">
-          <span class="text-xs font-semibold text-brand-accent tracking-wide uppercase">Defensa especializada</span>
-        </div>
+
+        <h3 class="font-display font-bold text-lg text-slate-900 mb-4 min-h-[48px] flex items-center justify-center">
+          Pensión de Alimentos y Derecho de Familia.
+        </h3>
+        
+        <p class="text-slate-600 text-xs sm:text-sm leading-relaxed text-justify">
+          Sabemos que la judicialización de temas de familia no es un trámite legal simple, sino un proceso que conlleva una carga emocional desgastante. Nuestro enfoque es pragmático y honesto: buscamos acuerdos justos donde sea posible y firmeza en Tribunales cuando sea necesario. No ofrecemos soluciones mágicas, sino una defensa técnica basada en 9 años de experiencia y un trato directo, priorizando siempre una resolución efectiva que le permita seguir adelante.
+        </p>
       </div>
 
       <!-- Card 2: Fraudes Bancarios -->
-      <div class="bg-white rounded-lg p-8 border border-slate-200 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
-        <div>
-          <div class="w-12 h-12 rounded-md bg-slate-100 flex items-center justify-center text-brand-navy mb-6">
-            <i data-lucide="shield-alert" class="w-6 h-6"></i>
-          </div>
-          <h3 class="text-xl font-serif font-semibold text-brand-navy mb-3">Defensa ante Fraudes Bancarios</h3>
-          <p class="text-slate-600 text-sm leading-relaxed mb-6">
-            Ante la vulneración de sus activos financieros, la respuesta debe ser técnica y oportuna. Representamos a víctimas de fraude bajo la <strong>Ley 20.009 (modificada por Ley 21.234)</strong>, litigando estratégicamente en Juzgados de Policía Local para que las entidades financieras asuman su responsabilidad legal.
-          </p>
+      <div class="bg-white rounded-xl border border-slate-200 p-8 shadow-sm hover:shadow-md transition-all flex flex-col items-center text-center">
+        <div class="w-32 h-32 mb-6 flex items-center justify-center">
+          <img 
+            src="assets/img/fraudes.png" 
+            alt="Defensa ante Fraudes Bancarios" 
+            class="max-w-full max-h-full object-contain"
+          />
         </div>
-        <div class="pt-4 border-t border-slate-100">
-          <span class="text-xs font-semibold text-brand-accent tracking-wide uppercase">Recuperación de fondos</span>
-        </div>
+
+        <h3 class="font-display font-bold text-lg text-slate-900 mb-4 min-h-[48px] flex items-center justify-center">
+          Defensa ante fraudes bancarios
+        </h3>
+        
+        <p class="text-slate-600 text-xs sm:text-sm leading-relaxed text-justify">
+          Ante la vulneración de sus activos financieros, la respuesta debe ser técnica y oportuna. Representamos a víctimas de fraude bancario bajo el marco de la <strong>Ley 20.009 (modificada por la Ley 21.234)</strong>, exigiendo la restitución de fondos mediante una litigación estratégica en los Juzgados de Policía Local. No gestionamos simples reclamos administrativos; ejecutamos defensas jurídicas diseñadas para que las instituciones financieras asuman su responsabilidad legal frente a fallos de seguridad.
+        </p>
       </div>
 
       <!-- Card 3: Sociedades -->
-      <div class="bg-white rounded-lg p-8 border border-slate-200 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
-        <div>
-          <div class="w-12 h-12 rounded-md bg-slate-100 flex items-center justify-center text-brand-navy mb-6">
-            <i data-lucide="building-2" class="w-6 h-6"></i>
-          </div>
-          <h3 class="text-xl font-serif font-semibold text-brand-navy mb-3">Constitución y Modificación de Sociedades</h3>
-          <p class="text-slate-600 text-sm leading-relaxed mb-6">
-            El tiempo de cada emprendedor es un activo crítico. Transformamos ideas en estructuras legales sólidas a través del sistema tradicional de escrituración, entregando el respaldo societario necesario para crecer con tranquilidad y cumplimiento normativo.
-          </p>
+      <div class="bg-white rounded-xl border border-slate-200 p-8 shadow-sm hover:shadow-md transition-all flex flex-col items-center text-center">
+        <div class="w-32 h-32 mb-6 flex items-center justify-center">
+          <img 
+            src="assets/img/sociedades.png" 
+            alt="Constitución y Modificación de Sociedades" 
+            class="max-w-full max-h-full object-contain"
+          />
         </div>
-        <div class="pt-4 border-t border-slate-100">
-          <span class="text-xs font-semibold text-brand-accent tracking-wide uppercase">Derecho corporativo</span>
-        </div>
+
+        <h3 class="font-display font-bold text-lg text-slate-900 mb-4 min-h-[48px] flex items-center justify-center">
+          Constitución y modificación de sociedades
+        </h3>
+        
+        <p class="text-slate-600 text-xs sm:text-sm leading-relaxed text-justify">
+          Entendemos que para todo emprendedor, el tiempo es un activo crítico. Nuestro servicio de constitución y modificación de sociedades está diseñado para otorgar agilidad a sus proyectos, transformando ideas en estructuras legales sólidas y operativas. A través del sistema tradicional de escrituración, nos aseguramos de que su empresa cuente con la base jurídica necesaria para crecer con seguridad, permitiéndole centrar sus esfuerzos en el desarrollo de su emprendimiento mientras nosotros garantizamos un respaldo legal profesional y directo.
+        </p>
       </div>
 
     </div>
   </section>
 
-  <!-- Trayectoria / Sobre Álvaro Quijero -->
-  <section id="trayectoria" class="py-20 bg-slate-100 border-y border-slate-200">
+  <!-- 5. Trayectoria y Enfoque Profesional -->
+  <section id="trayectoria" class="py-20 bg-brand-navySlate text-white">
     <div class="max-w-5xl mx-auto px-4 sm:px-6">
-      <div class="grid grid-cols-1 md:grid-cols-12 gap-12 items-center">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-10 items-center">
         
-        <!-- Foto / Perfil -->
-        <div class="md:col-span-5">
-          <div class="relative mx-auto max-w-xs md:max-w-none">
-            <div class="absolute -inset-2 bg-brand-gold/20 rounded-lg transform -rotate-1"></div>
+        <!-- Foto Vertical Álvaro -->
+        <div class="md:col-span-5 flex justify-center">
+          <div class="relative w-full max-w-xs shadow-2xl rounded overflow-hidden border-2 border-white/10">
             <img 
               src="assets/img/AlvaroQuiero.jpg" 
               alt="Álvaro Quiero - Abogado" 
-              class="relative rounded-lg shadow-lg object-cover w-full h-[420px] bg-slate-300"
+              class="w-full h-auto object-cover"
               loading="lazy"
             />
           </div>
         </div>
 
-        <!-- Bio y Credenciales -->
+        <!-- Bio Álvaro -->
         <div class="md:col-span-7">
-          <span class="text-xs uppercase font-bold tracking-widest text-brand-accent">Liderazgo y Experiencia</span>
-          <h2 class="text-3xl font-serif font-bold text-brand-navy mt-1 mb-6">Trayectoria y Enfoque Profesional</h2>
-          
-          <div class="space-y-4 text-slate-700 text-sm leading-relaxed">
-            <p>
-              Soy <strong>Álvaro Quiero</strong>, abogado con 9 años de experiencia y una sólida formación respaldada por diplomados en <strong>Derecho Laboral, Derecho Penal y Derecho Procesal Penal</strong>. Esta base académica me permite abordar cada caso con una visión integral, anticipando riesgos y trazando tácticas con enfoques multidisciplinarios.
-            </p>
-            <p>
-              Mi práctica profesional se ha consolidado en la <strong>litigación activa</strong> y en la <strong>resolución de asuntos tanto desde la vía administrativa</strong>, áreas donde la precisión y el rigor técnico son fundamentales para obtener resultados. Fundé SINCRO bajo la convicción de que el ejercicio del derecho debe ser transparente y efectivo.
-            </p>
-            <p>
-              Mi gestión se define por la agudeza analítica, la lealtad absoluta hacia los intereses de mis representados y una capacidad de respuesta oportuna ante escenarios complejos.
-            </p>
-          </div>
+          <h2 class="font-display font-light text-3xl sm:text-4xl text-white mb-6 leading-tight">
+            Trayectoria y enfoque profesional.
+          </h2>
 
-          <div class="mt-8 pt-6 border-t border-slate-200 grid grid-cols-2 gap-4">
-            <div>
-              <div class="text-2xl font-bold font-serif text-brand-navy">9+</div>
-              <div class="text-xs text-slate-500 uppercase tracking-wide">Años de Ejercicio</div>
-            </div>
-            <div>
-              <div class="text-2xl font-bold font-serif text-brand-navy">100%</div>
-              <div class="text-xs text-slate-500 uppercase tracking-wide">Atención Personalizada</div>
-            </div>
+          <div class="space-y-4 text-slate-200 text-xs sm:text-sm font-light leading-relaxed text-justify">
+            <p>
+              "Soy <strong class="text-white font-semibold">Álvaro Quiero</strong>, abogado con 9 años de experiencia y una formación especializada mediante diplomados en <strong class="text-white font-medium">Derecho Laboral, Derecho Penal y Derecho Procesal Penal</strong>. Esta base académica me permite abordar cada caso con una visión integral, anticipando riesgos y diseñando estrategias sólidas con enfoques multidisciplinarios.
+            </p>
+            <p>
+              Mi práctica profesional se ha consolidado en la <strong class="text-white font-medium">litigación activa</strong> y en la <strong class="text-white font-medium">resolución de asuntos también desde la vía administrativa</strong>, áreas donde la precisión y el rigor técnico son fundamentales para obtener resultados. Fundé SINCRO bajo la convicción de que el ejercicio del derecho debe ser transparente y efectivo.
+            </p>
+            <p>
+              Mi gestión se define por la agudeza analítica, la lealtad absoluta hacia los intereses de mis representados y una capacidad de respuesta oportuna ante escenarios complejos. Estas virtudes me permiten ofrecer una defensa de alto estándar, donde la excelencia técnica se traduce en soluciones concretas y en la tranquilidad de contar con un respaldo legal de primer nivel."
+            </p>
           </div>
         </div>
 
@@ -216,59 +235,54 @@
     </div>
   </section>
 
-  <!-- CTA / Contacto Directo -->
-  <section id="contacto" class="py-20 bg-brand-navy text-white">
+  <!-- 6. Banner de Cierre -->
+  <section id="contacto" class="py-16 bg-brand-navyDark text-white border-t border-slate-700/50">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 text-center">
-      <h2 class="text-3xl sm:text-4xl font-serif font-bold mb-4">¿Necesita evaluar la viabilidad de su caso?</h2>
-      <p class="text-slate-300 max-w-xl mx-auto text-sm sm:text-base mb-8">
-        Agendemos una entrevista técnica para analizar los antecedentes y definir la estrategia legal idónea.
+      <p class="text-sm sm:text-base text-slate-300 mb-2">
+        ¿Necesita evaluar la viabilidad de su caso judicial? Agendemos una entrevista técnica para analizar los detalles y definir la estrategia.
       </p>
+      <h3 class="font-display font-semibold text-lg sm:text-xl text-white mb-8 tracking-wider">
+        SINCRO | SOLUCIONES LEGALES &bull; 9 años de experiencia técnica e intuitiva.
+      </h3>
 
       <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
-        <!-- WhatsApp Directo -->
+        <!-- WhatsApp -->
         <a 
-          href="https://wa.me/56929271840?text=Hola,%20quisiera%20agendar%20una%20consulta%20técnica%20con%20el%20abogado%20Álvaro%20Quiero." 
+          href="https://wa.me/56971592773?text=Hola,%20quisiera%20agendar%20una%20consulta%20técnica%20con%20el%20abogado%20Álvaro%20Quiero." 
           target="_blank" 
           rel="noopener noreferrer"
-          class="w-full sm:w-auto inline-flex items-center justify-center gap-3 bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-8 py-3.5 rounded-md transition-all shadow-md"
+          class="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm px-6 py-3 rounded shadow transition-all"
         >
           <i data-lucide="message-circle" class="w-5 h-5"></i>
-          <span>Contactar por WhatsApp</span>
+          <span>Agendar por WhatsApp</span>
         </a>
 
-        <!-- Botón llamada / agenda -->
+        <!-- Correo -->
         <a 
           href="mailto:contacto@sincroabogados.cl" 
-          class="w-full sm:w-auto inline-flex items-center justify-center gap-3 bg-white/10 hover:bg-white/20 text-white font-medium px-8 py-3.5 rounded-md border border-white/20 transition-all"
+          class="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-white/10 hover:bg-white/20 text-white font-medium text-sm px-6 py-3 rounded border border-white/20 transition-all"
         >
           <i data-lucide="mail" class="w-5 h-5"></i>
-          <span>Enviar Correo Técnico</span>
+          <span>Agenda una consulta técnica</span>
         </a>
       </div>
     </div>
   </section>
 
-  <!-- Footer -->
-  <footer class="bg-[#070c1b] text-slate-400 py-12 text-xs border-t border-slate-800">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-      <div>
-        <p class="font-medium text-slate-300">SINCRO | Soluciones Legales</p>
-        <p class="mt-1">Litigación y Asesoría Jurídica Estratégica.</p>
-      </div>
-      <div class="text-center sm:text-right">
-        <p>&copy; 2026 SINCRO Soluciones Legales. Todos los derechos reservados.</p>
-        <p class="mt-1">Chile</p>
-      </div>
+  <!-- 7. Footer -->
+  <footer class="bg-black text-slate-500 py-8 text-xs text-center border-t border-slate-900">
+    <div class="max-w-6xl mx-auto px-4">
+      <p>&copy; 2026 SINCRO Soluciones Legales &bull; Abogado Álvaro Quiero &bull; Chile</p>
     </div>
   </footer>
 
   <!-- Botón Flotante de WhatsApp -->
   <a 
-    href="https://wa.me/56929271840?text=Hola,%20quisiera%20agendar%20una%20consulta%20técnica%20con%20el%20abogado%20Álvaro%20Quiero." 
+    href="https://wa.me/56971592773?text=Hola,%20quisiera%20agendar%20una%20consulta%20técnica%20con%20el%20abogado%20Álvaro%20Quiero." 
     target="_blank" 
     rel="noopener noreferrer"
-    class="fixed bottom-6 right-6 z-50 bg-emerald-500 hover:bg-emerald-600 text-white p-3.5 rounded-full shadow-lg hover:scale-105 transition-all flex items-center justify-center"
-    aria-label="Contactar por WhatsApp"
+    class="fixed bottom-6 right-6 z-50 bg-emerald-600 hover:bg-emerald-700 text-white p-3.5 rounded-full shadow-2xl hover:scale-105 transition-all flex items-center justify-center"
+    aria-label="WhatsApp"
   >
     <i data-lucide="message-circle" class="w-7 h-7"></i>
   </a>
