@@ -1,0 +1,14 @@
+/* Optimizaciones generales de renderizado */
+html {
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+/* Scroll padding para que el navbar sticky no tape los títulos */
+html {
+  scroll-padding-top: 5rem;
+}
+
+/* Transición suave para botones */
+a, button {
+  transition: all 0.2s ease-in-out;
+}
