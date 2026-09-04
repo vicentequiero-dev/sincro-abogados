@@ -17,7 +17,7 @@
             brand: {
               burdeo: '#751318',
               burdeoHover: '#5e0f13',
-              navySlate: '#162238', // Azul marino oscuro elegante
+              navySlate: '#162238',
               navyCardTitle: '#1b2c47',
               navySection: '#21324d',
               navyDark: '#172338'
@@ -51,13 +51,18 @@
       <p class="text-xs sm:text-sm font-medium">
         ¿Necesita evaluar la viabilidad de su caso judicial? Agendemos una entrevista técnica hoy mismo.
       </p>
-      <a href="#contacto" class="bg-white/10 hover:bg-white/25 text-white text-xs font-bold px-4 py-1.5 rounded border border-white/40 tracking-wider uppercase whitespace-nowrap transition-all">
+      <a 
+        href="https://calendar.app.google/5GLwZmq6qJpUajow5" 
+        target="_blank" 
+        rel="noopener noreferrer" 
+        class="bg-white/10 hover:bg-white/25 text-white text-xs font-bold px-4 py-1.5 rounded border border-white/40 tracking-wider uppercase whitespace-nowrap transition-all"
+      >
         ¡Agendar ahora!
       </a>
     </div>
   </div>
 
-  <!-- 2. Barra de Navegación con Logotipo en Azul Marino Oscuro -->
+  <!-- 2. Barra de Navegación -->
   <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
       <a href="#" class="flex items-center space-x-1">
@@ -70,7 +75,12 @@
       <nav class="hidden md:flex items-center space-x-6 text-sm font-medium text-slate-700">
         <a href="#servicios" class="hover:text-brand-burdeo transition-colors">Áreas de Práctica</a>
         <a href="#trayectoria" class="hover:text-brand-burdeo transition-colors">Trayectoria</a>
-        <a href="#contacto" class="bg-brand-burdeo hover:bg-brand-burdeoHover text-white px-4 py-2 rounded text-xs font-semibold tracking-wider uppercase transition-all">
+        <a 
+          href="https://calendar.app.google/5GLwZmq6qJpUajow5" 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          class="bg-brand-burdeo hover:bg-brand-burdeoHover text-white px-4 py-2 rounded text-xs font-semibold tracking-wider uppercase transition-all"
+        >
           Agendar
         </a>
       </nav>
@@ -85,25 +95,29 @@
     <div id="mobile-menu" class="hidden md:hidden bg-white border-b border-slate-200 px-6 py-4 space-y-3">
       <a href="#servicios" class="block text-slate-700 py-1 mobile-link">Áreas de Práctica</a>
       <a href="#trayectoria" class="block text-slate-700 py-1 mobile-link">Trayectoria</a>
-      <a href="#contacto" class="block text-brand-burdeo font-bold py-1 mobile-link">Agendar</a>
+      <a 
+        href="https://calendar.app.google/5GLwZmq6qJpUajow5" 
+        target="_blank" 
+        rel="noopener noreferrer" 
+        class="block text-brand-burdeo font-bold py-1 mobile-link"
+      >
+        Agendar
+      </a>
     </div>
   </header>
 
-  <!-- 3. Hero Section (Fondo oscuro con texto blanco nítido) -->
+  <!-- 3. Hero Section Adaptable -->
   <section class="relative min-h-[580px] sm:min-h-[640px] lg:min-h-[720px] flex items-center justify-center overflow-hidden bg-slate-900">
     <picture class="absolute inset-0 w-full h-full">
-      <!-- Versión para PC -->
       <source media="(min-width: 768px)" srcset="assets/img/Hero-Desktop.jpg">
-      <!-- Versión para Celular -->
       <img 
-        src="assets/img/Hero-Abogado.jpg" 
+        src="assets/img/Hero-Mobile.jpg" 
         alt="Álvaro Quiero - Sincro Soluciones Legales" 
         class="w-full h-full object-cover object-center"
         onerror="this.src='assets/img/Hero-Abogado.jpg'"
       />
     </picture>
     
-    <!-- Overlay oscuro para legibilidad perfecta del texto blanco -->
     <div class="absolute inset-0 bg-slate-950/55"></div>
 
     <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center text-white py-16 sm:py-20">
@@ -116,14 +130,19 @@
       </p>
 
       <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
-        <a href="#contacto" class="w-full sm:w-auto bg-brand-burdeo hover:bg-brand-burdeoHover text-white text-xs sm:text-sm font-semibold tracking-wider uppercase px-8 py-3.5 rounded shadow-lg transition-all">
+        <a 
+          href="https://calendar.app.google/5GLwZmq6qJpUajow5" 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          class="w-full sm:w-auto bg-brand-burdeo hover:bg-brand-burdeoHover text-white text-xs sm:text-sm font-semibold tracking-wider uppercase px-8 py-3.5 rounded shadow-lg transition-all"
+        >
           Agendar Consulta Técnica
         </a>
       </div>
     </div>
   </section>
 
-  <!-- 4. Áreas de Práctica (Títulos en Azul Marino Oscuro) -->
+  <!-- 4. Áreas de Práctica -->
   <section id="servicios" class="py-20 sm:py-24 max-w-6xl mx-auto px-4 sm:px-6">
     <div class="text-center max-w-2xl mx-auto mb-14">
       <h2 class="font-display font-bold text-3xl sm:text-4xl text-brand-navySlate mb-2 tracking-tight">
@@ -196,7 +215,7 @@
     </div>
   </section>
 
-  <!-- 5. Trayectoria y Enfoque Profesional (Fondo Azul de su maqueta) -->
+  <!-- 5. Trayectoria y Enfoque Profesional -->
   <section id="trayectoria" class="py-20 bg-brand-navySection text-white">
     <div class="max-w-5xl mx-auto px-4 sm:px-6">
       <div class="grid grid-cols-1 md:grid-cols-12 gap-10 items-center">
@@ -255,16 +274,18 @@
           class="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm px-6 py-3 rounded shadow transition-all"
         >
           <i data-lucide="message-circle" class="w-5 h-5"></i>
-          <span>Agendar por WhatsApp</span>
+          <span>Consultar por WhatsApp</span>
         </a>
 
-        <!-- Correo -->
+        <!-- Agendar directo -->
         <a 
-          href="mailto:contacto@sincroabogados.cl" 
+          href="https://calendar.app.google/5GLwZmq6qJpUajow5" 
+          target="_blank" 
+          rel="noopener noreferrer" 
           class="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-white/10 hover:bg-white/20 text-white font-medium text-sm px-6 py-3 rounded border border-white/20 transition-all"
         >
-          <i data-lucide="mail" class="w-5 h-5"></i>
-          <span>Agenda una consulta técnica</span>
+          <i data-lucide="calendar" class="w-5 h-5"></i>
+          <span>Agendar consulta técnica</span>
         </a>
       </div>
     </div>
