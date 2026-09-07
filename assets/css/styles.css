@@ -12,3 +12,31 @@ html {
 a, button {
   transition: all 0.2s ease-in-out;
 }
+
+/* Ancho y estilo general de la barra */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+/* Fondo del carril */
+::-webkit-scrollbar-track {
+  background: #0f172a; /* Slate oscuro */
+}
+
+/* Indicador de desplazamiento (Thumb) */
+::-webkit-scrollbar-thumb {
+  background: #751318; /* Burdeo institucional */
+  border-radius: 5px;
+  border: 2px solid #0f172a;
+}
+
+/* Hover sobre el indicador */
+::-webkit-scrollbar-thumb:hover {
+  background: #5e0f13;
+}
+
+/* Compatibilidad con Firefox */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: #751318 #0f172a;
+}
