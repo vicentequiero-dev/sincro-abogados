@@ -1,2 +1,5 @@
 tailwindcss.exe
 *.exe
+.env
+.env.local
+.env.*.local
