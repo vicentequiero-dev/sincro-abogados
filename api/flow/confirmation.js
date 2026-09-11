@@ -1,10 +1,15 @@
 const { createHmac } = require("node:crypto");
+const {
+  processCalendarReservation,
+} = require("../../lib/calendar/process-reservation");
 
 const PAYMENT_AMOUNT = 15000;
 const FLOW_REQUEST_TIMEOUT_MS = 10000;
 const SUPABASE_REQUEST_TIMEOUT_MS = 10000;
 const TOKEN_PATTERN = /^[A-Za-z0-9._~-]{10,500}$/;
 const FLOW_ORDER_PATTERN = /^[1-9]\d{0,15}$/;
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const SUCCESSFUL_CONFIRMATION_DECISIONS = new Set([
   "paid",
   "already_paid",
@@ -19,6 +24,11 @@ const CONSISTENCY_ERROR_DECISIONS = new Set([
   "identity_mismatch",
   "amount_mismatch",
   "flow_order_conflict",
+]);
+const CALENDAR_PROCESSING_DECISIONS = new Set([
+  "paid",
+  "already_paid",
+  "late_payment_recovered",
 ]);
 
 function sendJson(response, statusCode, body) {
@@ -243,7 +253,7 @@ async function confirmFlowPayment(configuration, payment) {
     throw new Error("Invalid payment confirmation RPC response");
   }
 
-  return rows[0].decision;
+  return rows[0];
 }
 
 module.exports = async function handler(request, response) {
@@ -273,14 +283,31 @@ module.exports = async function handler(request, response) {
     return sendJson(response, 409, { ok: false });
   }
 
-  let decision;
+  let confirmation;
   try {
-    decision = await confirmFlowPayment(configuration, payment);
+    confirmation = await confirmFlowPayment(configuration, payment);
   } catch {
     return sendJson(response, 500, { ok: false });
   }
 
+  const decision = confirmation.decision;
+
   if (SUCCESSFUL_CONFIRMATION_DECISIONS.has(decision)) {
+    if (
+      CALENDAR_PROCESSING_DECISIONS.has(decision) &&
+      typeof confirmation.reservation_id === "string" &&
+      UUID_PATTERN.test(confirmation.reservation_id)
+    ) {
+      try {
+        await processCalendarReservation({
+          reservationId: confirmation.reservation_id.toLowerCase(),
+          environment: process.env,
+          mode: "immediate",
+        });
+      } catch {
+        // The payment is already recorded. Calendar is reconciled separately.
+      }
+    }
     return sendJson(response, 200, { ok: true });
   }
 
