@@ -3,6 +3,18 @@ const SLOT_START_TIMES = ["14:00", "14:30", "15:00", "15:30", "16:00"];
 const SLOT_DURATION_MINUTES = 30;
 const MINIMUM_NOTICE_HOURS = 2;
 const MAXIMUM_ADVANCE_DAYS = 30;
+const SUPABASE_REQUEST_TIMEOUT_MS = 10000;
+const RESERVATION_BLOCKING_STATUSES = [
+  "pending_payment",
+  "paid",
+  "confirmed",
+  "paid_needs_review",
+];
+const ALWAYS_BLOCKING_RESERVATION_STATUSES = new Set([
+  "paid",
+  "confirmed",
+  "paid_needs_review",
+]);
 
 const zonedDateTimeFormatter = new Intl.DateTimeFormat("en-CA", {
   timeZone: TIME_ZONE,
@@ -142,6 +154,24 @@ function overlapsBusyInterval(slot, busyInterval) {
   return slot.startDate < busyInterval.end && slot.endDate > busyInterval.start;
 }
 
+function parseHttpsUrl(value) {
+  if (typeof value !== "string" || !value) return null;
+
+  try {
+    const parsedUrl = new URL(value);
+    if (
+      parsedUrl.protocol !== "https:" ||
+      parsedUrl.username ||
+      parsedUrl.password
+    ) {
+      return null;
+    }
+    return parsedUrl;
+  } catch {
+    return null;
+  }
+}
+
 async function getAccessToken(clientId, clientSecret, refreshToken) {
   const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
     method: "POST",
@@ -214,6 +244,72 @@ async function getBusyIntervals(accessToken, queryStart, queryEnd) {
   });
 }
 
+async function getReservationBusyIntervals(
+  reservationsUrl,
+  supabaseSecretKey,
+  queryStart,
+  queryEnd,
+  now,
+) {
+  const url = new URL(reservationsUrl);
+  url.searchParams.set(
+    "select",
+    "start_at,end_at,status,hold_expires_at",
+  );
+  url.searchParams.set(
+    "status",
+    `in.(${RESERVATION_BLOCKING_STATUSES.join(",")})`,
+  );
+  url.searchParams.set("start_at", `lt.${queryEnd.toISOString()}`);
+  url.searchParams.set("end_at", `gt.${queryStart.toISOString()}`);
+
+  const databaseResponse = await fetch(url, {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+      apikey: supabaseSecretKey,
+    },
+    signal: AbortSignal.timeout(SUPABASE_REQUEST_TIMEOUT_MS),
+  });
+
+  if (!databaseResponse.ok) throw new Error("Reservation query failed");
+
+  const rows = await databaseResponse.json();
+  if (!Array.isArray(rows)) throw new Error("Invalid reservation response");
+
+  return rows.flatMap((row) => {
+    if (!row || typeof row !== "object" || Array.isArray(row)) {
+      throw new Error("Invalid reservation response");
+    }
+
+    const start = new Date(row.start_at);
+    const end = new Date(row.end_at);
+    if (
+      !Number.isFinite(start.getTime()) ||
+      !Number.isFinite(end.getTime()) ||
+      start >= end
+    ) {
+      throw new Error("Invalid reservation interval");
+    }
+
+    if (row.status === "pending_payment") {
+      if (row.hold_expires_at === null) return [];
+
+      const holdExpiresAt = new Date(row.hold_expires_at);
+      if (!Number.isFinite(holdExpiresAt.getTime())) {
+        throw new Error("Invalid hold expiration");
+      }
+      return holdExpiresAt > now ? [{ start, end }] : [];
+    }
+
+    if (!ALWAYS_BLOCKING_RESERVATION_STATUSES.has(row.status)) {
+      throw new Error("Invalid reservation status");
+    }
+
+    return [{ start, end }];
+  });
+}
+
 module.exports = async function handler(request, response) {
   if (request.method !== "GET") {
     response.setHeader("Allow", "GET");
@@ -236,26 +332,48 @@ module.exports = async function handler(request, response) {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
   const refreshToken = process.env.GOOGLE_REFRESH_TOKEN;
+  const supabaseUrl = parseHttpsUrl(process.env.SUPABASE_URL);
+  const supabaseSecretKey = process.env.SUPABASE_SECRET_KEY;
 
-  if (!clientId || !clientSecret || !refreshToken) {
+  if (
+    !clientId ||
+    !clientSecret ||
+    !refreshToken ||
+    !supabaseUrl ||
+    !supabaseSecretKey
+  ) {
     return sendJson(response, 500, { ok: false, error: "Availability service failed" });
   }
 
   try {
     const slots = createSlots(requestedDate);
-    const accessToken = await getAccessToken(clientId, clientSecret, refreshToken);
-    const busyIntervals = await getBusyIntervals(
-      accessToken,
-      slots[0].startDate,
-      slots[slots.length - 1].endDate,
-    );
+    const queryStart = slots[0].startDate;
+    const queryEnd = slots[slots.length - 1].endDate;
+    const [busyIntervals, reservationBusyIntervals] = await Promise.all([
+      getAccessToken(clientId, clientSecret, refreshToken).then((accessToken) =>
+        getBusyIntervals(accessToken, queryStart, queryEnd),
+      ),
+      getReservationBusyIntervals(
+        new URL("/rest/v1/reservations", supabaseUrl),
+        supabaseSecretKey,
+        queryStart,
+        queryEnd,
+        now,
+      ),
+    ]);
+    const combinedBusyIntervals = [
+      ...busyIntervals,
+      ...reservationBusyIntervals,
+    ];
     const minimumStartTime = now.getTime() + MINIMUM_NOTICE_HOURS * 60 * 60 * 1000;
 
     const availableSlots = slots
       .filter(
         (slot) =>
           slot.startDate.getTime() >= minimumStartTime &&
-          !busyIntervals.some((busyInterval) => overlapsBusyInterval(slot, busyInterval)),
+          !combinedBusyIntervals.some((busyInterval) =>
+            overlapsBusyInterval(slot, busyInterval),
+          ),
       )
       .map(({ start, end }) => ({ start, end }));
 
