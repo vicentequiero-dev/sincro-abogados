@@ -1,11 +1,16 @@
+const { createHmac } = require("node:crypto");
+const { isIP } = require("node:net");
+
 const TIME_ZONE = "America/Santiago";
 const ALLOWED_START_TIMES = new Set(["14:00", "14:30", "15:00", "15:30", "16:00"]);
 const SLOT_DURATION_MINUTES = 30;
 const MINIMUM_NOTICE_HOURS = 2;
 const MAXIMUM_ADVANCE_DAYS = 30;
-const HOLD_DURATION_MINUTES = 10;
 const RESERVATION_AMOUNT = 15000;
-const OVERLAP_CONSTRAINT = "reservations_no_active_overlap";
+const MINIMUM_RATE_LIMIT_SECRET_LENGTH = 32;
+const MAXIMUM_RATE_LIMIT_SECRET_LENGTH = 512;
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 const zonedDateTimeFormatter = new Intl.DateTimeFormat("en-CA", {
   timeZone: TIME_ZONE,
@@ -121,6 +126,50 @@ function normalizePhone(value) {
   return digitCount >= 7 ? phone : null;
 }
 
+function normalizePhoneIdentity(phone) {
+  const digits = phone.replace(/\D/g, "");
+  if (/^569\d{8}$/.test(digits)) return digits.slice(2);
+  return digits;
+}
+
+function normalizeClientIp(value) {
+  if (
+    typeof value !== "string" ||
+    value !== value.trim() ||
+    value.includes(",")
+  ) {
+    return null;
+  }
+
+  const version = isIP(value);
+  if (version === 4) return value;
+  if (version !== 6) return null;
+
+  try {
+    const hostname = new URL(`http://[${value}]/`).hostname;
+    return hostname.slice(1, -1).toLowerCase();
+  } catch {
+    return null;
+  }
+}
+
+function getClientIp(request) {
+  return normalizeClientIp(request.headers?.["x-vercel-forwarded-for"]);
+}
+
+function isReasonableRateLimitSecret(value) {
+  return (
+    typeof value === "string" &&
+    value.length >= MINIMUM_RATE_LIMIT_SECRET_LENGTH &&
+    value.length <= MAXIMUM_RATE_LIMIT_SECRET_LENGTH &&
+    /^[\x21-\x7e]+$/.test(value)
+  );
+}
+
+function createIpHash(clientIp, secret) {
+  return createHmac("sha256", secret).update(clientIp).digest("hex");
+}
+
 function parseStartAt(value, now) {
   if (
     typeof value !== "string" ||
@@ -170,7 +219,14 @@ function validatePayload(body, now) {
     return null;
   }
 
-  return { customerName, customerEmail, customerPhone, practiceArea, ...slot };
+  return {
+    customerName,
+    customerEmail,
+    customerPhone,
+    customerPhoneIdentity: normalizePhoneIdentity(customerPhone),
+    practiceArea,
+    ...slot,
+  };
 }
 
 async function getGoogleAccessToken(clientId, clientSecret, refreshToken) {
@@ -245,88 +301,82 @@ async function isSlotBusyInGoogle(accessToken, startDate, endDate) {
   });
 }
 
-function createReservationsUrl(supabaseUrl) {
+function createReservationHoldRpcUrl(supabaseUrl) {
   const baseUrl = new URL(supabaseUrl);
   if (baseUrl.protocol !== "https:" || baseUrl.username || baseUrl.password) {
     throw new Error("Invalid Supabase URL");
   }
-  return new URL("/rest/v1/reservations", baseUrl);
+  return new URL(
+    "/rest/v1/rpc/create_reservation_hold_limited",
+    baseUrl,
+  );
 }
 
-async function expirePendingHolds(reservationsUrl, supabaseSecretKey, now) {
-  const expirationUrl = new URL(reservationsUrl);
-  expirationUrl.searchParams.set("status", "eq.pending_payment");
-  expirationUrl.searchParams.set("hold_expires_at", `lte.${now.toISOString()}`);
-
-  const expirationResponse = await fetch(expirationUrl, {
-    method: "PATCH",
-    headers: {
-      apikey: supabaseSecretKey,
-      "Content-Type": "application/json",
-      Prefer: "return=minimal",
-    },
-    body: JSON.stringify({
-      status: "expired",
-      updated_at: now.toISOString(),
-    }),
-    signal: AbortSignal.timeout(10000),
-  });
-
-  if (!expirationResponse.ok) throw new Error("Hold expiration failed");
-}
-
-async function readErrorResponse(response) {
-  try {
-    return await response.json();
-  } catch {
-    return null;
-  }
-}
-
-function isOverlapConstraintViolation(errorData) {
-  if (errorData?.code !== "23P01") return false;
-
-  if (errorData.constraint === OVERLAP_CONSTRAINT) return true;
-
-  return [errorData.message, errorData.details, errorData.hint]
-    .filter((value) => typeof value === "string")
-    .some((value) => value.includes(`"${OVERLAP_CONSTRAINT}"`));
-}
-
-async function insertHold(reservationsUrl, supabaseSecretKey, reservation) {
-  const insertUrl = new URL(reservationsUrl);
-  insertUrl.searchParams.set("select", "id");
-
-  const insertResponse = await fetch(insertUrl, {
+async function createLimitedHold(
+  rpcUrl,
+  supabaseSecretKey,
+  ipHash,
+  reservation,
+) {
+  const databaseResponse = await fetch(rpcUrl, {
     method: "POST",
     headers: {
       Accept: "application/json",
       apikey: supabaseSecretKey,
       "Content-Type": "application/json",
-      Prefer: "return=representation",
     },
-    body: JSON.stringify(reservation),
+    body: JSON.stringify({
+      p_ip_hash: ipHash,
+      p_customer_name: reservation.customerName,
+      p_customer_email: reservation.customerEmail,
+      p_customer_phone: reservation.customerPhone,
+      p_customer_phone_identity: reservation.customerPhoneIdentity,
+      p_practice_area: reservation.practiceArea,
+      p_start_at: reservation.startDate.toISOString(),
+      p_end_at: reservation.endDate.toISOString(),
+    }),
     signal: AbortSignal.timeout(10000),
   });
 
-  if (!insertResponse.ok) {
-    const errorData = await readErrorResponse(insertResponse);
-    if (isOverlapConstraintViolation(errorData)) {
-      return { conflict: true };
-    }
-    throw new Error("Reservation insert failed");
+  if (!databaseResponse.ok) {
+    throw new Error("Reservation hold RPC failed");
   }
 
-  const insertedRows = await insertResponse.json();
+  const rows = await databaseResponse.json();
   if (
-    !Array.isArray(insertedRows) ||
-    insertedRows.length !== 1 ||
-    typeof insertedRows[0]?.id !== "string"
+    !Array.isArray(rows) ||
+    rows.length !== 1 ||
+    typeof rows[0]?.decision !== "string"
   ) {
-    throw new Error("Invalid insert response");
+    throw new Error("Invalid reservation hold RPC response");
   }
 
-  return { conflict: false, id: insertedRows[0].id };
+  const result = rows[0];
+  if (result.decision === "created") {
+    const holdExpiresAt = new Date(result.hold_expires_at);
+    if (
+      typeof result.reservation_id !== "string" ||
+      !UUID_PATTERN.test(result.reservation_id) ||
+      !Number.isFinite(holdExpiresAt.getTime())
+    ) {
+      throw new Error("Invalid reservation hold RPC response");
+    }
+    return {
+      decision: result.decision,
+      reservationId: result.reservation_id.toLowerCase(),
+      holdExpiresAt,
+    };
+  }
+
+  if (
+    result.decision !== "rate_limited" &&
+    result.decision !== "slot_unavailable" &&
+    result.decision !== "invalid_input"
+  ) {
+    throw new Error("Unknown reservation hold RPC decision");
+  }
+
+  return { decision: result.decision };
 }
 
 module.exports = async function handler(request, response) {
@@ -341,21 +391,28 @@ module.exports = async function handler(request, response) {
     return sendJson(response, 400, { ok: false, error: "invalid_request" });
   }
 
+  const clientIp = getClientIp(request);
+
   const googleClientId = process.env.GOOGLE_CLIENT_ID;
   const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
   const googleRefreshToken = process.env.GOOGLE_REFRESH_TOKEN;
   const supabaseUrl = process.env.SUPABASE_URL;
   const supabaseSecretKey = process.env.SUPABASE_SECRET_KEY;
+  const rateLimitSecret = process.env.RESERVATION_RATE_LIMIT_SECRET;
 
   if (
+    !clientIp ||
     !googleClientId ||
     !googleClientSecret ||
     !googleRefreshToken ||
     !supabaseUrl ||
-    !supabaseSecretKey
+    !supabaseSecretKey ||
+    !isReasonableRateLimitSecret(rateLimitSecret)
   ) {
     return sendJson(response, 500, { ok: false, error: "reservation_failed" });
   }
+
+  const ipHash = createIpHash(clientIp, rateLimitSecret);
 
   try {
     const googleAccessToken = await getGoogleAccessToken(
@@ -373,53 +430,37 @@ module.exports = async function handler(request, response) {
       return sendJson(response, 409, { ok: false, error: "slot_unavailable" });
     }
 
-    const reservationsUrl = createReservationsUrl(supabaseUrl);
-    let databaseNow = new Date(Date.now());
-    await expirePendingHolds(reservationsUrl, supabaseSecretKey, databaseNow);
-
-    const holdExpiresAt = new Date(
-      databaseNow.getTime() + HOLD_DURATION_MINUTES * 60 * 1000,
-    );
-    const reservationToInsert = {
-      customer_name: validated.customerName,
-      customer_email: validated.customerEmail,
-      customer_phone: validated.customerPhone,
-      practice_area: validated.practiceArea,
-      start_at: validated.startDate.toISOString(),
-      end_at: validated.endDate.toISOString(),
-      status: "pending_payment",
-      hold_expires_at: holdExpiresAt.toISOString(),
-      amount: RESERVATION_AMOUNT,
-    };
-
-    let insertResult = await insertHold(
-      reservationsUrl,
+    const holdResult = await createLimitedHold(
+      createReservationHoldRpcUrl(supabaseUrl),
       supabaseSecretKey,
-      reservationToInsert,
+      ipHash,
+      validated,
     );
 
-    if (insertResult.conflict) {
-      databaseNow = new Date(Date.now());
-      await expirePendingHolds(reservationsUrl, supabaseSecretKey, databaseNow);
-      insertResult = await insertHold(
-        reservationsUrl,
-        supabaseSecretKey,
-        reservationToInsert,
-      );
+    if (holdResult.decision === "rate_limited") {
+      response.setHeader("Retry-After", "900");
+      return sendJson(response, 429, {
+        ok: false,
+        error: "rate_limited",
+      });
     }
 
-    if (insertResult.conflict) {
+    if (holdResult.decision === "slot_unavailable") {
       return sendJson(response, 409, { ok: false, error: "slot_unavailable" });
+    }
+
+    if (holdResult.decision === "invalid_input") {
+      return sendJson(response, 400, { ok: false, error: "invalid_request" });
     }
 
     return sendJson(response, 201, {
       ok: true,
       reservation: {
-        id: insertResult.id,
+        id: holdResult.reservationId,
         status: "pending_payment",
         startAt: formatZonedDateTime(validated.startDate),
         endAt: formatZonedDateTime(validated.endDate),
-        holdExpiresAt: holdExpiresAt.toISOString(),
+        holdExpiresAt: holdResult.holdExpiresAt.toISOString(),
         amount: RESERVATION_AMOUNT,
       },
     });
