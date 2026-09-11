@@ -283,12 +283,14 @@ async function readErrorResponse(response) {
   }
 }
 
-function isOverlapConstraintViolation(response, errorData) {
-  if (response.status !== 409 || errorData?.code !== "23P01") return false;
+function isOverlapConstraintViolation(errorData) {
+  if (errorData?.code !== "23P01") return false;
 
-  return [errorData.constraint, errorData.message, errorData.details, errorData.hint]
+  if (errorData.constraint === OVERLAP_CONSTRAINT) return true;
+
+  return [errorData.message, errorData.details, errorData.hint]
     .filter((value) => typeof value === "string")
-    .some((value) => value.includes(OVERLAP_CONSTRAINT));
+    .some((value) => value.includes(`"${OVERLAP_CONSTRAINT}"`));
 }
 
 async function insertHold(reservationsUrl, supabaseSecretKey, reservation) {
@@ -309,7 +311,7 @@ async function insertHold(reservationsUrl, supabaseSecretKey, reservation) {
 
   if (!insertResponse.ok) {
     const errorData = await readErrorResponse(insertResponse);
-    if (isOverlapConstraintViolation(insertResponse, errorData)) {
+    if (isOverlapConstraintViolation(errorData)) {
       return { conflict: true };
     }
     throw new Error("Reservation insert failed");
