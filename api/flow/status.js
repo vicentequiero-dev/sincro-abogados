@@ -117,6 +117,20 @@ function getSafeFieldTypes(value) {
   };
 }
 
+function normalizeAmount(value) {
+  if (typeof value === "number") {
+    return Number.isFinite(value) && value >= 0 ? value : null;
+  }
+
+  if (typeof value !== "string") return null;
+
+  const normalized = value.trim();
+  if (!/^\d+(?:\.\d+)?$/.test(normalized)) return null;
+
+  const amount = Number(normalized);
+  return Number.isFinite(amount) && amount >= 0 ? amount : null;
+}
+
 function isValidStatusResponse(value, requestedFlowOrder) {
   const responseFlowOrder =
     typeof value?.flowOrder === "number" &&
@@ -134,9 +148,7 @@ function isValidStatusResponse(value, requestedFlowOrder) {
     typeof value.commerceOrder === "string" &&
     value.commerceOrder.length > 0 &&
     value.commerceOrder.length <= 255 &&
-    typeof value.amount === "number" &&
-    Number.isFinite(value.amount) &&
-    value.amount >= 0 &&
+    normalizeAmount(value.amount) !== null &&
     typeof value.currency === "string" &&
     /^[A-Z]{3}$/.test(value.currency)
   );
@@ -211,7 +223,7 @@ module.exports = async function handler(request, response) {
       flowOrder: flowData.flowOrder,
       status: flowData.status,
       commerceOrder: flowData.commerceOrder,
-      amount: flowData.amount,
+      amount: normalizeAmount(flowData.amount),
       currency: flowData.currency,
     });
   } catch {
