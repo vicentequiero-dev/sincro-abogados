@@ -8,6 +8,24 @@ function sendJson(response, statusCode, body) {
   return response.status(statusCode).json(body);
 }
 
+function sendDiagnostic(
+  response,
+  statusCode,
+  stage,
+  { flowHttpStatus = 0, flowErrorCode = null, flowErrorMessage = null, fieldTypes } = {},
+) {
+  const body = {
+    ok: false,
+    stage,
+    flowHttpStatus,
+    flowErrorCode,
+    flowErrorMessage,
+  };
+
+  if (fieldTypes) body.fieldTypes = fieldTypes;
+  return sendJson(response, statusCode, body);
+}
+
 function normalizeFlowOrder(value) {
   if (typeof value !== "string") return null;
 
@@ -43,6 +61,62 @@ function signFlowParameters(parameters, secretKey) {
   return createHmac("sha256", secretKey).update(stringToSign).digest("hex");
 }
 
+function sanitizeFlowErrorMessage(message, sensitiveValues) {
+  const normalized = message
+    .replace(/[\u0000-\u001f\u007f]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!normalized || normalized.length > 500) return null;
+
+  const containsSensitiveValue = sensitiveValues.some(
+    (value) => typeof value === "string" && value && normalized.includes(value),
+  );
+  const containsSensitiveContext =
+    /https?:\/\/|\b(?:api\s*key|apikey|secret(?:\s*key)?|signature|token)\b|(?:^|[?&])s=/i.test(
+      normalized,
+    );
+
+  if (containsSensitiveValue || containsSensitiveContext) {
+    return "Flow request rejected";
+  }
+
+  return normalized.slice(0, 200);
+}
+
+function getOfficialFlowError(value, sensitiveValues) {
+  if (
+    !value ||
+    typeof value !== "object" ||
+    Array.isArray(value) ||
+    typeof value.code !== "number" ||
+    !Number.isFinite(value.code) ||
+    typeof value.message !== "string"
+  ) {
+    return null;
+  }
+
+  const message = sanitizeFlowErrorMessage(value.message, sensitiveValues);
+  return message ? { code: value.code, message } : null;
+}
+
+function getSafeFieldTypes(value) {
+  const typeOf = (field) => {
+    if (!Object.prototype.hasOwnProperty.call(value, field)) return "missing";
+    if (value[field] === null) return "null";
+    if (Array.isArray(value[field])) return "array";
+    return typeof value[field];
+  };
+
+  return {
+    flowOrder: typeOf("flowOrder"),
+    status: typeOf("status"),
+    commerceOrder: typeOf("commerceOrder"),
+    amount: typeOf("amount"),
+    currency: typeOf("currency"),
+  };
+}
+
 function isValidStatusResponse(value, requestedFlowOrder) {
   const responseFlowOrder =
     typeof value?.flowOrder === "number" &&
@@ -71,12 +145,12 @@ function isValidStatusResponse(value, requestedFlowOrder) {
 module.exports = async function handler(request, response) {
   if (request.method !== "GET") {
     response.setHeader("Allow", "GET");
-    return sendJson(response, 405, { ok: false });
+    return sendDiagnostic(response, 405, "invalid_request");
   }
 
   const flowOrder = normalizeFlowOrder(request.query?.flowOrder);
   if (!flowOrder) {
-    return sendJson(response, 400, { ok: false });
+    return sendDiagnostic(response, 400, "invalid_request");
   }
 
   const apiKey = process.env.FLOW_API_KEY;
@@ -84,7 +158,7 @@ module.exports = async function handler(request, response) {
   const statusUrl = createStatusUrl(process.env.FLOW_API_URL);
 
   if (!apiKey || !secretKey || !statusUrl) {
-    return sendJson(response, 500, { ok: false });
+    return sendDiagnostic(response, 500, "configuration");
   }
 
   const parameters = { apiKey, flowOrder };
@@ -98,13 +172,38 @@ module.exports = async function handler(request, response) {
       signal: AbortSignal.timeout(FLOW_REQUEST_TIMEOUT_MS),
     });
 
-    if (!flowResponse.ok) {
-      return sendJson(response, 502, { ok: false });
+    let flowData;
+    try {
+      flowData = await flowResponse.json();
+    } catch {
+      return sendDiagnostic(response, 502, "flow_invalid_json", {
+        flowHttpStatus: flowResponse.status,
+      });
     }
 
-    const flowData = await flowResponse.json();
+    if (!flowResponse.ok) {
+      const officialError =
+        flowResponse.status === 400 || flowResponse.status === 401
+          ? getOfficialFlowError(flowData, [apiKey, secretKey, signature])
+          : null;
+
+      return sendDiagnostic(response, 502, "flow_http_error", {
+        flowHttpStatus: flowResponse.status,
+        flowErrorCode: officialError?.code ?? null,
+        flowErrorMessage: officialError?.message ?? null,
+      });
+    }
+
     if (!isValidStatusResponse(flowData, flowOrder)) {
-      return sendJson(response, 502, { ok: false });
+      const fieldTypes =
+        flowData && typeof flowData === "object" && !Array.isArray(flowData)
+          ? getSafeFieldTypes(flowData)
+          : null;
+
+      return sendDiagnostic(response, 502, "flow_invalid_shape", {
+        flowHttpStatus: flowResponse.status,
+        fieldTypes,
+      });
     }
 
     return sendJson(response, 200, {
@@ -116,6 +215,6 @@ module.exports = async function handler(request, response) {
       currency: flowData.currency,
     });
   } catch {
-    return sendJson(response, 502, { ok: false });
+    return sendDiagnostic(response, 502, "network_error");
   }
 };
