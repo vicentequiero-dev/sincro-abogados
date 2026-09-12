@@ -75,8 +75,7 @@
       <p class="text-xs sm:text-sm font-medium">
         Evaluemos la solución a tu problema legal. Agenda una sesión técnica telemática hoy mismo.
       </p>
-      <a href="https://www.flow.cl/btn.php?token=x2f8f333512b281f692734e4d676f6b865c41dbd" target="_blank"
-        rel="noopener noreferrer"
+      <a href="#reserva" data-booking-cta
         class="bg-white/10 hover:bg-white/25 text-white text-xs font-bold px-4 py-1.5 rounded border border-white/40 tracking-wider uppercase whitespace-nowrap transition-all">
         Agenda tu hora
       </a>
@@ -98,8 +97,7 @@
       <nav class="hidden md:flex items-center space-x-6 text-sm font-medium text-slate-700">
         <a href="#servicios" class="hover:text-brand-burdeo transition-colors">Áreas de Práctica</a>
         <a href="#trayectoria" class="hover:text-brand-burdeo transition-colors">Trayectoria</a>
-        <a href="https://www.flow.cl/btn.php?token=x2f8f333512b281f692734e4d676f6b865c41dbd" target="_blank"
-          rel="noopener noreferrer"
+        <a href="#reserva" data-booking-cta
           class="bg-brand-burdeo hover:bg-brand-burdeoHover text-white px-4 py-2 rounded text-xs font-semibold tracking-wider uppercase transition-all shadow-sm">
           Agenda tu hora
         </a>
@@ -115,8 +113,7 @@
     <div id="mobile-menu" class="hidden md:hidden bg-white border-b border-slate-200 px-6 py-4 space-y-3">
       <a href="#servicios" class="block text-slate-700 py-1 mobile-link">Áreas de Práctica</a>
       <a href="#trayectoria" class="block text-slate-700 py-1 mobile-link">Trayectoria</a>
-      <a href="https://www.flow.cl/btn.php?token=x2f8f333512b281f692734e4d676f6b865c41dbd" target="_blank"
-        rel="noopener noreferrer" class="block text-brand-burdeo font-bold py-1 mobile-link">
+      <a href="#reserva" data-booking-cta class="block text-brand-burdeo font-bold py-1 mobile-link">
         Evaluemos tu caso
       </a>
     </div>
@@ -149,8 +146,7 @@
       </p>
 
       <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
-        <a href="https://www.flow.cl/btn.php?token=x2f8f333512b281f692734e4d676f6b865c41dbd" target="_blank"
-          rel="noopener noreferrer"
+        <a href="#reserva" data-booking-cta
           class="w-full sm:w-auto bg-brand-burdeo hover:bg-brand-burdeoHover text-white text-xs sm:text-sm font-semibold tracking-wider uppercase px-8 py-3.5 rounded shadow-lg transition-all">
           Evaluemos tu caso
         </a>
@@ -245,7 +241,117 @@
     </div>
   </section>
 
-  <!-- 5. Trayectoria y Enfoque Profesional -->
+  <!-- 5. Reserva de Consulta -->
+  <section id="reserva" class="booking-section py-20 sm:py-24 bg-slate-100 border-y border-slate-200"
+    aria-labelledby="booking-title">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6">
+      <div class="text-center max-w-2xl mx-auto mb-10">
+        <p class="text-xs font-bold tracking-[0.2em] uppercase text-brand-burdeo mb-3">Agenda online</p>
+        <h2 id="booking-title" tabindex="-1"
+          class="font-display font-bold text-3xl sm:text-4xl text-brand-navySlate mb-3 tracking-tight focus:outline-none">
+          Reserva tu consulta
+        </h2>
+        <p class="text-sm sm:text-base text-slate-600 leading-relaxed">
+          Elige una fecha y un horario disponible para conversar online con nuestro equipo.
+        </p>
+      </div>
+
+      <div class="booking-layout">
+        <aside class="booking-summary" aria-label="Información de la consulta">
+          <h3 class="font-display font-bold text-xl text-white">Consulta jurídica online</h3>
+          <p class="text-sm text-slate-200 leading-relaxed">
+            Una sesión técnica para revisar tus antecedentes y definir los próximos pasos.
+          </p>
+          <dl class="booking-facts">
+            <div>
+              <dt>Duración</dt>
+              <dd>30 minutos</dd>
+            </div>
+            <div>
+              <dt>Valor</dt>
+              <dd>$15.000 CLP</dd>
+            </div>
+            <div>
+              <dt>Modalidad</dt>
+              <dd>Videollamada Google Meet</dd>
+            </div>
+          </dl>
+          <p class="booking-hold-note">
+            El horario se reserva temporalmente durante 10 minutos mientras completas el pago.
+          </p>
+        </aside>
+
+        <form id="booking-form" class="booking-card" novalidate aria-busy="false">
+          <fieldset id="booking-schedule-fields" class="booking-fieldset">
+            <legend>1. Selecciona fecha y horario</legend>
+
+            <div class="booking-field">
+              <label for="booking-date">Fecha</label>
+              <input id="booking-date" name="date" type="date" required aria-describedby="availability-status">
+            </div>
+
+            <div id="availability-status" class="booking-status" role="status" aria-live="polite"
+              aria-atomic="true"></div>
+            <div id="booking-slots" class="booking-slots" role="radiogroup"
+              aria-label="Horarios disponibles"></div>
+          </fieldset>
+
+          <fieldset id="customer-details" class="booking-fieldset" disabled>
+            <legend>2. Cuéntanos sobre ti</legend>
+
+            <div class="booking-grid">
+              <div class="booking-field booking-field-wide">
+                <label for="customer-name">Nombre completo</label>
+                <input id="customer-name" name="customerName" type="text" autocomplete="name" minlength="2"
+                  maxlength="120" required>
+              </div>
+
+              <div class="booking-field">
+                <label for="customer-email">Correo electrónico</label>
+                <input id="customer-email" name="customerEmail" type="email" autocomplete="email" maxlength="254"
+                  required>
+              </div>
+
+              <div class="booking-field">
+                <label for="customer-phone">Teléfono</label>
+                <input id="customer-phone" name="customerPhone" type="tel" autocomplete="tel" inputmode="tel"
+                  minlength="7" maxlength="30" required>
+              </div>
+
+              <div class="booking-field booking-field-wide">
+                <label for="practice-area">Área jurídica</label>
+                <select id="practice-area" name="practiceArea" required>
+                  <option value="">Selecciona un área</option>
+                  <option value="Derecho de Familia">Derecho de Familia</option>
+                  <option value="Fraudes Bancarios">Fraudes Bancarios</option>
+                  <option value="Constitución o modificación de sociedades">Constitución o modificación de sociedades</option>
+                  <option value="Otra consulta jurídica">Otra consulta jurídica</option>
+                </select>
+              </div>
+            </div>
+          </fieldset>
+
+          <p class="booking-privacy-note">
+            Tus datos serán utilizados únicamente para gestionar tu consulta y reserva.
+          </p>
+
+          <div id="booking-message" class="booking-message" role="status" aria-live="polite" aria-atomic="true"
+            tabindex="-1"></div>
+
+          <div class="booking-actions">
+            <button id="booking-submit" type="submit" class="booking-submit" disabled>
+              Reservar y continuar al pago
+            </button>
+            <button id="booking-payment-retry" type="button" class="booking-retry" hidden>
+              Reintentar iniciar pago
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. Trayectoria y Enfoque Profesional -->
   <section id="trayectoria" class="py-20 bg-brand-navySection text-white">
     <div class="max-w-5xl mx-auto px-4 sm:px-6">
       <div class="grid grid-cols-1 md:grid-cols-12 gap-10 items-center">
@@ -291,7 +397,7 @@
     </div>
   </section>
 
-  <!-- 6. Banner de Cierre -->
+  <!-- 7. Banner de Cierre -->
   <section id="contacto" class="py-16 bg-brand-navyDark text-white border-t border-slate-700/50">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 text-center">
       <p class="text-sm sm:text-base text-slate-300 mb-2">
@@ -311,9 +417,8 @@
           <span>Consultar por WhatsApp</span>
         </a>
 
-        <!-- Botón Flow -->
-        <a href="https://www.flow.cl/btn.php?token=x2f8f333512b281f692734e4d676f6b865c41dbd" target="_blank"
-          rel="noopener noreferrer"
+        <!-- Botón de reserva -->
+        <a href="#reserva" data-booking-cta
           class="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-brand-burdeo hover:bg-brand-burdeoHover text-white font-medium text-sm px-6 py-3 rounded border border-white/20 transition-all shadow-md">
           <i data-lucide="calendar" class="w-5 h-5"></i>
           <span>Evaluemos tu caso</span>
@@ -322,7 +427,7 @@
     </div>
   </section>
 
-  <!-- 7. Footer -->
+  <!-- 8. Footer -->
   <footer class="bg-black text-slate-500 py-8 text-xs text-center border-t border-slate-900">
     <div class="max-w-6xl mx-auto px-4 space-y-2">
       <p>&copy; 2026 SINCRO Abogados &bull; Todos los derechos reservados &bull; Chile</p>
