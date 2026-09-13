@@ -2,8 +2,12 @@ const { createHash, timingSafeEqual } = require("node:crypto");
 const {
   processCalendarReservation,
 } = require("../../lib/calendar/process-reservation");
+const {
+  processAdminReservationNotification,
+} = require("../../lib/notifications/admin-reservation");
 
 const MAX_RESERVATIONS = 2;
+const MAX_NOTIFICATIONS = 2;
 const RECENT_PAYMENT_MARGIN_MS = 60 * 1000;
 const SUPABASE_REQUEST_TIMEOUT_MS = 10000;
 const MIN_SECRET_LENGTH = 32;
@@ -74,9 +78,54 @@ function getConfiguration(environment) {
 
   return {
     reservationsUrl: new URL("/rest/v1/reservations", supabaseUrl),
+    notificationListUrl: new URL(
+      "/rest/v1/rpc/list_reconcilable_admin_notifications",
+      supabaseUrl,
+    ),
     reconcilerSecret: environment.RECONCILER_SECRET,
     supabaseSecretKey: environment.SUPABASE_SECRET_KEY,
   };
+}
+
+async function getReconcilableNotificationIds(configuration) {
+  const databaseResponse = await fetch(configuration.notificationListUrl, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      apikey: configuration.supabaseSecretKey,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ p_limit: MAX_NOTIFICATIONS }),
+    signal: AbortSignal.timeout(SUPABASE_REQUEST_TIMEOUT_MS),
+  });
+
+  if (!databaseResponse.ok) {
+    throw new Error("Notification query failed");
+  }
+
+  let rows;
+  try {
+    rows = await databaseResponse.json();
+  } catch {
+    throw new Error("Invalid notification query response");
+  }
+
+  if (!Array.isArray(rows) || rows.length > MAX_NOTIFICATIONS) {
+    throw new Error("Invalid notification query response");
+  }
+
+  return rows.map((row) => {
+    if (
+      !row ||
+      typeof row !== "object" ||
+      Array.isArray(row) ||
+      typeof row.reservation_id !== "string" ||
+      !UUID_PATTERN.test(row.reservation_id)
+    ) {
+      throw new Error("Invalid notification query response");
+    }
+    return row.reservation_id.toLowerCase();
+  });
 }
 
 async function getPaidReservationIds(configuration) {
@@ -200,5 +249,32 @@ module.exports = async function handler(request, response) {
     }
   }
 
-  return sendJson(response, 200, statistics);
+  let notificationIds = [];
+  try {
+    notificationIds = await getReconcilableNotificationIds(configuration);
+  } catch {
+    // Calendar reconciliation remains independent from notification discovery.
+  }
+
+  let notificationsSucceeded = 0;
+  for (const reservationId of notificationIds) {
+    try {
+      const result = await processAdminReservationNotification({
+        reservationId,
+        environment: process.env,
+      });
+      if (result?.outcome === "sent" || result?.outcome === "already_sent") {
+        notificationsSucceeded += 1;
+      }
+    } catch {
+      // A failed notification must not prevent later jobs from being attempted.
+    }
+  }
+
+  return sendJson(response, 200, {
+    ok: true,
+    paidProcessed: statistics.processed,
+    notificationsAttempted: notificationIds.length,
+    notificationsSucceeded,
+  });
 };
