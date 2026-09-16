@@ -7,6 +7,8 @@ const SLOT_DURATION_MINUTES = 30;
 const MINIMUM_NOTICE_HOURS = 2;
 const MAXIMUM_ADVANCE_DAYS = 30;
 const RESERVATION_AMOUNT = 15000;
+const TERMS_VERSION = "1.0";
+const PRIVACY_VERSION = "1.0";
 const MINIMUM_RATE_LIMIT_SECRET_LENGTH = 32;
 const MAXIMUM_RATE_LIMIT_SECRET_LENGTH = 512;
 const UUID_PATTERN =
@@ -215,7 +217,16 @@ function validatePayload(body, now) {
   const practiceArea = normalizeText(payload.practiceArea, 2, 120);
   const slot = parseStartAt(payload.startAt, now);
 
-  if (!customerName || !customerEmail || !customerPhone || !practiceArea || !slot) {
+  if (
+    !customerName ||
+    !customerEmail ||
+    !customerPhone ||
+    !practiceArea ||
+    !slot ||
+    payload.legalAccepted !== true ||
+    payload.termsVersion !== TERMS_VERSION ||
+    payload.privacyVersion !== PRIVACY_VERSION
+  ) {
     return null;
   }
 
@@ -225,6 +236,9 @@ function validatePayload(body, now) {
     customerPhone,
     customerPhoneIdentity: normalizePhoneIdentity(customerPhone),
     practiceArea,
+    legalAccepted: true,
+    termsVersion: TERMS_VERSION,
+    privacyVersion: PRIVACY_VERSION,
     ...slot,
   };
 }
@@ -334,6 +348,9 @@ async function createLimitedHold(
       p_practice_area: reservation.practiceArea,
       p_start_at: reservation.startDate.toISOString(),
       p_end_at: reservation.endDate.toISOString(),
+      p_legal_accepted: reservation.legalAccepted,
+      p_terms_version: reservation.termsVersion,
+      p_privacy_version: reservation.privacyVersion,
     }),
     signal: AbortSignal.timeout(10000),
   });

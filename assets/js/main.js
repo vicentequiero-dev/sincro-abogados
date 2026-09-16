@@ -1,5 +1,7 @@
 const BOOKING_TIME_ZONE = 'America/Santiago';
 const BOOKING_MAX_ADVANCE_DAYS = 30;
+const BOOKING_TERMS_VERSION = '1.0';
+const BOOKING_PRIVACY_VERSION = '1.0';
 const RESERVATION_ID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const PAYMENT_RETRY_CODES = new Set([
@@ -214,14 +216,15 @@ function initializeBooking() {
   const emailInput = document.getElementById('customer-email');
   const phoneInput = document.getElementById('customer-phone');
   const practiceAreaInput = document.getElementById('practice-area');
+  const legalAcceptanceInput = document.getElementById('legal-acceptance');
   const bookingMessage = document.getElementById('booking-message');
   const submitButton = document.getElementById('booking-submit');
   const retryButton = document.getElementById('booking-payment-retry');
   if (
     !form || !bookingSection || !bookingTitle || !dateInput || !scheduleFields ||
     !availabilityStatus || !slotsContainer || !customerDetails || !nameInput ||
-    !emailInput || !phoneInput || !practiceAreaInput || !bookingMessage ||
-    !submitButton || !retryButton
+    !emailInput || !phoneInput || !practiceAreaInput || !legalAcceptanceInput ||
+    !bookingMessage || !submitButton || !retryButton
   ) return;
 
   const state = {
@@ -369,6 +372,9 @@ function initializeBooking() {
       customerPhone: phoneInput.value.trim(),
       practiceArea: practiceAreaInput.value,
       startAt: state.selectedSlot.start,
+      legalAccepted: legalAcceptanceInput.checked,
+      termsVersion: BOOKING_TERMS_VERSION,
+      privacyVersion: BOOKING_PRIVACY_VERSION,
     };
   }
 
@@ -445,6 +451,15 @@ function initializeBooking() {
   async function submitReservation(event) {
     event.preventDefault();
     if (!acquireSubmissionLock(state)) return;
+    if (!legalAcceptanceInput.checked) {
+      setSubmitting(false);
+      setBookingMessage(
+        'error',
+        'Debes aceptar los Términos y Condiciones y declarar que has leído la Política de Privacidad para continuar.',
+      );
+      legalAcceptanceInput.focus();
+      return;
+    }
     if (!state.selectedSlot || !form.reportValidity()) {
       setSubmitting(false);
       setBookingMessage('error', 'Selecciona un horario y completa todos los datos requeridos.', true);

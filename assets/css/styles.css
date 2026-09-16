@@ -165,12 +165,49 @@ html {
 
 .booking-field input:focus-visible,
 .booking-field select:focus-visible,
+.booking-legal-acceptance input:focus-visible,
 .booking-slot-input:focus-visible + .booking-slot-label,
 .booking-submit:focus-visible,
 .booking-retry:focus-visible {
   outline: 3px solid rgb(117 19 24 / 0.28);
   outline-offset: 2px;
   border-color: #751318;
+}
+
+.booking-legal-acceptance {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  margin-top: 1.25rem;
+  padding: 1rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.65rem;
+  background: #f8fafc;
+}
+
+.booking-legal-acceptance input {
+  flex: 0 0 auto;
+  width: 1.05rem;
+  height: 1.05rem;
+  margin-top: 0.15rem;
+  accent-color: #751318;
+}
+
+.booking-legal-acceptance label {
+  color: #475569;
+  font-size: 0.75rem;
+  line-height: 1.6;
+}
+
+.booking-legal-acceptance a {
+  color: #751318;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.booking-legal-acceptance a:hover {
+  color: #5e0f13;
 }
 
 .booking-status {
