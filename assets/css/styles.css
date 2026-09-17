@@ -375,6 +375,109 @@ html {
   display: none !important;
 }
 
+.consent-banner {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  left: 1rem;
+  z-index: 60;
+  pointer-events: none;
+}
+
+.consent-banner__content {
+  display: flex;
+  width: min(100%, 760px);
+  margin: 0 auto;
+  padding: 1rem;
+  border: 1px solid #d6dbe3;
+  border-radius: 0.75rem;
+  background: #fff;
+  box-shadow: 0 18px 45px rgb(22 34 56 / 0.2);
+  pointer-events: auto;
+  align-items: center;
+  gap: 1rem;
+}
+
+.consent-banner__copy {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.consent-banner__title {
+  margin: 0 0 0.25rem;
+  color: #162238;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.consent-banner__description {
+  margin: 0;
+  color: #526078;
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+
+.consent-banner__description a {
+  color: #751318;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.consent-banner__actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 0.6rem;
+}
+
+.consent-banner__button {
+  min-height: 2.6rem;
+  padding: 0.6rem 1rem;
+  border: 1px solid #751318;
+  border-radius: 0.45rem;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.consent-banner__button--primary {
+  background: #751318;
+  color: #fff;
+}
+
+.consent-banner__button--secondary {
+  background: #fff;
+  color: #751318;
+}
+
+.consent-banner__button--primary:hover {
+  background: #5e0f13;
+}
+
+.consent-banner__button--secondary:hover {
+  background: #fff1f2;
+}
+
+.consent-banner__button:focus-visible,
+.consent-settings-link:focus-visible {
+  outline: 3px solid #caa66b;
+  outline-offset: 3px;
+}
+
+.consent-settings-link {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.consent-settings-link:hover {
+  color: #cbd5e1;
+}
+
 @keyframes booking-spin {
   to { transform: rotate(360deg); }
 }
@@ -401,6 +504,23 @@ html {
 
   .booking-field-wide {
     grid-column: auto;
+  }
+
+  .consent-banner {
+    right: 0.65rem;
+    bottom: 0.65rem;
+    left: 0.65rem;
+  }
+
+  .consent-banner__content,
+  .consent-banner__actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .consent-banner__actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
   }
 }
 

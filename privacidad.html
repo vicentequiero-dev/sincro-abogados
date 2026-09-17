@@ -5,6 +5,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Política de Privacidad | SINCRO Abogados</title>
+    <script src="assets/js/consent.js"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-18440870219"></script>
+    <script>
+        gtag('js', new Date());
+        gtag('config', 'AW-18440870219');
+    </script>
     <meta name="robots" content="noindex, follow" />
 
     <!-- Favicon / Ícono de la pestaña -->
@@ -258,6 +264,17 @@
                     La contratación de una consulta jurídica no constituye por sí sola autorización para recibir
                     comunicaciones comerciales.
                 </p>
+                <p>
+                    El sitio puede utilizar tecnologías de medición y publicidad de Google para comprender el
+                    rendimiento de campañas y medir acciones relevantes, como la interacción con el sitio y las
+                    conversiones asociadas a una reserva.
+                </p>
+                <p>
+                    Estas tecnologías pueden procesar información técnica, como el tipo de navegador y dispositivo,
+                    datos de interacción, páginas visitadas, referencias de campaña y acciones realizadas en el sitio.
+                    SINCRO Abogados no envía deliberadamente a Google el contenido escrito en los campos del formulario
+                    de reserva para estos fines.
+                </p>
             </section>
 
             <section class="space-y-3 text-xs sm:text-sm text-slate-600 leading-relaxed text-justify">
@@ -280,6 +297,12 @@
                 </p>
                 <h3 class="font-semibold text-brand-navySlate">Google / Gmail</h3>
                 <p>Utilizado para administrar comunicaciones y eventos relacionados con las reservas.</p>
+                <h3 class="font-semibold text-brand-navySlate">Google Ads</h3>
+                <p>
+                    Utilizado para medir el rendimiento de campañas publicitarias y conversiones del sitio. La forma en
+                    que las tecnologías publicitarias almacenan o utilizan identificadores depende de la preferencia de
+                    consentimiento informada por la persona usuaria cuando corresponda.
+                </p>
                 <h3 class="font-semibold text-brand-navySlate">Supabase</h3>
                 <p>
                     Utilizado como infraestructura de base de datos para almacenar y administrar técnicamente las reservas
@@ -480,12 +503,23 @@
                     de reserva.
                 </p>
                 <p>
-                    Sin perjuicio de ello, determinados proveedores tecnológicos o recursos externos utilizados por el
-                    sitio pueden emplear mecanismos técnicos necesarios para prestar sus propios servicios.
+                    El sitio utiliza almacenamiento local para conservar la preferencia de consentimiento relacionada
+                    con tecnologías de medición y publicidad. Esta preferencia no contiene los datos personales
+                    ingresados en el formulario de reserva.
                 </p>
                 <p>
-                    SINCRO Abogados no utiliza deliberadamente la información del sistema de reservas para elaborar
-                    perfiles publicitarios o realizar seguimiento con fines comerciales.
+                    Cuando no existe una preferencia guardada, el almacenamiento publicitario y de analítica se
+                    configura inicialmente como denegado mediante Google Consent Mode. El usuario puede aceptar o
+                    rechazar estas tecnologías desde el aviso mostrado por el sitio y revisar posteriormente su elección
+                    mediante el enlace de preferencias disponible en el pie de página.
+                </p>
+                <p>
+                    Si se otorga consentimiento, Google puede utilizar tecnologías de medición y publicidad para
+                    procesar información técnica y acciones realizadas en el sitio con el fin de atribuir conversiones y
+                    evaluar el rendimiento de campañas. Si se rechaza, las categorías de almacenamiento publicitario,
+                    analítica, datos de usuario para publicidad y personalización permanecen denegadas. Dependiendo del
+                    funcionamiento de Consent Mode, Google puede recibir señales técnicas limitadas sin utilizar dichas
+                    categorías de almacenamiento.
                 </p>
             </section>
 
@@ -544,6 +578,11 @@
     <footer class="bg-black text-slate-500 py-6 text-xs text-center border-t border-slate-900 mt-auto">
         <div class="max-w-4xl mx-auto px-4">
             <p>&copy; 2026 SINCRO Abogados &bull; Todos los derechos reservados &bull; Chile</p>
+            <p class="mt-2">
+                <button type="button" class="consent-settings-link" data-consent-settings>
+                    Preferencias de cookies
+                </button>
+            </p>
         </div>
     </footer>
 
