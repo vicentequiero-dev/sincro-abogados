@@ -1,7 +1,11 @@
-const { createHmac } = require("node:crypto");
+const { createHmac, randomBytes } = require("node:crypto");
 
 const PAYMENT_AMOUNT = 15000;
 const FLOW_REQUEST_TIMEOUT_MS = 10000;
+const GOOGLE_ADS_ID = "AW-18440870219";
+const GOOGLE_ADS_CONVERSION_TARGET =
+  "AW-18440870219/-9aDCLCOqfocEMuypdlE";
+const CONSENT_STORAGE_KEY = "sincro_ads_consent_v1";
 const TOKEN_PATTERN = /^[A-Za-z0-9._~-]{10,500}$/;
 const FLOW_ORDER_PATTERN = /^[1-9]\d{0,15}$/;
 const COMMERCE_ORDER_PATTERN = /^[A-Za-z0-9_-]{1,255}$/;
@@ -170,6 +174,7 @@ function normalizeFlowPayment(value) {
     status: value.status,
     amount,
     currency: value.currency,
+    commerceOrder,
   };
 }
 
@@ -208,7 +213,67 @@ function escapeHtml(value) {
     .replaceAll("'", "&#39;");
 }
 
-function renderPage(stateName, siteUrl) {
+function serializeForInlineScript(value) {
+  return JSON.stringify(value)
+    .replaceAll("<", "\\u003c")
+    .replaceAll("\u2028", "\\u2028")
+    .replaceAll("\u2029", "\\u2029");
+}
+
+function renderGoogleAdsTracking(nonce, conversion) {
+  const serializedConsentKey = serializeForInlineScript(CONSENT_STORAGE_KEY);
+  const conversionEvent = conversion
+    ? `\n    gtag('event', 'conversion', ${serializeForInlineScript(conversion)});`
+    : "";
+
+  return `<script nonce="${nonce}">
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('consent', 'default', {
+      ad_storage: 'denied',
+      analytics_storage: 'denied',
+      ad_user_data: 'denied',
+      ad_personalization: 'denied'
+    });
+    try {
+      const storedPreference = window.localStorage.getItem(${serializedConsentKey});
+      if (storedPreference === 'granted' || storedPreference === 'denied') {
+        gtag('consent', 'update', {
+          ad_storage: storedPreference,
+          analytics_storage: storedPreference,
+          ad_user_data: storedPreference,
+          ad_personalization: storedPreference
+        });
+      }
+    } catch {
+      // Storage unavailable: the denied defaults remain active.
+    }
+  </script>
+  <script nonce="${nonce}" async src="https://www.googletagmanager.com/gtag/js?id=${GOOGLE_ADS_ID}"></script>
+  <script nonce="${nonce}">
+    gtag('js', new Date());
+    gtag('config', '${GOOGLE_ADS_ID}');${conversionEvent}
+  </script>`;
+}
+
+function createContentSecurityPolicy(nonce) {
+  return [
+    "default-src 'none'",
+    `script-src 'nonce-${nonce}' https://www.googletagmanager.com https://www.googleadservices.com https://www.google.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net`,
+    "script-src-attr 'none'",
+    `style-src 'nonce-${nonce}'`,
+    "style-src-attr 'none'",
+    "img-src https://www.googletagmanager.com https://googleads.g.doubleclick.net https://www.google.com https://google.com https://www.google.cl https://google.cl https://pagead2.googlesyndication.com https://www.googleadservices.com",
+    "connect-src https://pagead2.googlesyndication.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://ad.doubleclick.net https://www.google.com https://google.com https://www.google.cl https://google.cl",
+    "frame-src https://www.googletagmanager.com",
+    "object-src 'none'",
+    "base-uri 'none'",
+    "form-action 'none'",
+    "frame-ancestors 'none'",
+  ].join("; ");
+}
+
+function renderPage(stateName, siteUrl, nonce, conversion = null) {
   const state = PAGE_STATES[stateName];
   const returnButton = siteUrl
     ? `<a class="button" href="${escapeHtml(siteUrl.href)}">Volver a SINCRO Abogados</a>`
@@ -221,7 +286,8 @@ function renderPage(stateName, siteUrl) {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
   <title>${escapeHtml(state.title)} | SINCRO Abogados</title>
-  <style>
+  ${renderGoogleAdsTracking(nonce, conversion)}
+  <style nonce="${nonce}">
     :root { color-scheme: light; }
     * { box-sizing: border-box; }
     body {
@@ -305,16 +371,25 @@ function renderPage(stateName, siteUrl) {
 </html>`;
 }
 
-function sendPage(response, statusCode, stateName, siteUrl = null) {
+function sendPage(
+  response,
+  statusCode,
+  stateName,
+  siteUrl = null,
+  conversion = null,
+) {
+  const nonce = randomBytes(16).toString("base64");
   response.setHeader("Cache-Control", "no-store");
   response.setHeader("Content-Type", "text/html; charset=utf-8");
   response.setHeader("X-Content-Type-Options", "nosniff");
   response.setHeader("Referrer-Policy", "no-referrer");
   response.setHeader(
     "Content-Security-Policy",
-    "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+    createContentSecurityPolicy(nonce),
   );
-  return response.status(statusCode).send(renderPage(stateName, siteUrl));
+  return response
+    .status(statusCode)
+    .send(renderPage(stateName, siteUrl, nonce, conversion));
 }
 
 module.exports = async function handler(request, response) {
@@ -341,7 +416,12 @@ module.exports = async function handler(request, response) {
   }
 
   if (payment.status === 2) {
-    return sendPage(response, 200, "paid", configuration.siteUrl);
+    return sendPage(response, 200, "paid", configuration.siteUrl, {
+      send_to: GOOGLE_ADS_CONVERSION_TARGET,
+      value: payment.amount,
+      currency: payment.currency,
+      transaction_id: payment.commerceOrder,
+    });
   }
 
   if (payment.status === 1) {
